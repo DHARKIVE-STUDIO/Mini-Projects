@@ -1,0 +1,957 @@
+
+
+#BDA PROJECT
+
+!pip install pyspark
+
+from pyspark import SparkContext
+from pyspark.sql import SparkSession,SQLContext
+
+from pyspark.sql.types import StructType,StructField,DoubleType,StringType,IntegerType,NumericType
+
+from pyspark.sql.functions import col
+from pyspark.sql import functions as func
+
+import time
+import numpy as np
+
+from scipy import linalg
+
+from scipy.stats import norm
+
+from scipy.sparse import csr_matrix
+from pyspark.ml.linalg import Vectors
+
+import matplotlib.pyplot as plt
+
+from pyspark.ml.feature import StringIndexer,VectorAssembler,StandardScaler,PCA
+from pyspark.ml.regression import LinearRegression
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.tuning import ParamGridBuilder,CrossValidator
+
+from pyspark.ml import Pipeline
+from pyspark.ml.regression import GeneralizedLinearRegression
+from pyspark.ml.classification import LogisticRegression,LinearSVC,OneVsRest
+from pyspark.ml.evaluation import BinaryClassificationEvaluator,MulticlassClassificationEvaluator
+
+from pyspark.sql.functions import approxCountDistinct,col,exp,mean,stddev
+
+from pyspark.ml.clustering import KMeans,GaussianMixture
+from pyspark.ml.evaluation import ClusteringEvaluator
+
+import pandas as pd
+
+from nltk.tokenize import RegexpTokenizer
+
+from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+from pyspark.ml.feature import Tokenizer,StopWordsRemover,CountVectorizer
+from pyspark.ml.clustering import LDA
+
+from IPython.display import Image
+
+sc = SparkContext().getOrCreate()
+
+spark = SparkSession.builder.appName('Project Demo').getOrCreate()
+
+**Module 1**
+
+1.
+Apache Spark is an excellent tool for handling large datasets that come in various formats, such as structured, semi-structured, and unstructured data. Here's how Spark can be used to integrate these different types of data into a single view for comprehensive business analysis:
+
+**Data Collection:**
+The first step in the process is data collection. Spark can read data from multiple sources like databases, live streams, and file systems.
+-	Structured data can be collected from traditional database systems using JDBC connectors.
+-	Semi-structured data such as JSON or XML can be directly ingested from file systems like HDFS or cloud storage services.
+-	Unstructured data, like logs or text files, can also be loaded into Spark.
+
+**Data Processing:**
+Once data is collected, Spark provides several components and APIs for processing:
+-	DataFrame API: This is used to handle structured and semi-structured data. It allows you to manipulate data in a tabular form.
+-	RDD (Resilient Distributed Dataset): For lower-level transformations and actions on any type of data, RDDs provide fine-grained control.
+-	Datasets API: This combines the best features of RDDs and DataFrames, offering type-safety and object-oriented programming interfaces.
+
+**Data Integration:**
+To create a single view from multiple data sources:
+-	Spark SQL: Use Spark SQL to run SQL queries across datasets. It can seamlessly mix SQL commands with Spark programs and can read data from Hive, Avro, Parquet, ORC, JSON, and JDBC.
+-	Join Operations: Data from different sources can be joined using common identifiers. For instance, customer transaction data can be joined with web traffic data on customer ID.
+-	UDFs (User Defined Functions): You can write custom transformations using UDFs in Spark SQL to handle data transformations that are not natively supported by SQL.
+
+**Data Analysis:**
+-	MLlib: Use Spark’s machine learning library (MLlib) for predictive analytics and to uncover patterns in data.
+-	GraphX: For graph-based analysis, where relationships between data points need to be analyzed.
+-	Spark Streaming: For real-time data processing and analytics if the e-commerce platform requires analysis of live data streams.
+
+**Data Storage:**
+After processing and analysis, the results can be stored back into a database, file system, or live dashboard systems for further action or visualization.
+
+**Spark Components Involved:**
+-	Spark Core: The foundation of the system providing distributed task dispatching, scheduling, and basic I/O functionalities.
+-	Spark SQL: For seamless integration and querying of data.
+-	Spark MLlib: For applying machine learning algorithms.
+-	Spark Streaming: For processing real-time data streams.
+
+
+2.
+Big data in healthcare is characterized by the 5 Vs, and these characteristics can be utilized to improve patient outcomes in several impactful ways:
+Big data in healthcare is characterized by the 5 Vs, and these characteristics can be utilized to improve patient outcomes in several impactful ways:
+- **Volume:** Analyzing large volumes of electronic health records (EHRs) can help hospitals identify disease patterns, evaluate treatment effectiveness, and optimize resource allocation.
+- **Velocity:** Real-time monitoring data from patients can alert providers to immediate health changes, enabling swift interventions that can save lives, especially in critical care.
+- **Variety:** Integrating diverse data types, such as EHRs, imaging (X-rays, MRI), and operational data, allows for a comprehensive analysis, enhancing diagnostic accuracy and patient treatment plans.
+- **Veracity:** Maintaining data accuracy is essential. Implementing data cleansing to ensure reliability improves treatment decisions and patient safety by reducing errors.
+- **Value:** Data insights can lead to personalized medicine, where genetic information is used alongside health records to tailor treatments, improving effectiveness and reducing side effects.
+
+By making use of these big data characteristics, healthcare institutions can improve diagnostics, predict patient risks, enhance preventive care, and optimize treatments, significantly boosting patient outcomes.
+
+
+3.
+The Hadoop ecosystem is an ideal platform for managing and analyzing large volumes of data due to its capacity for distributed processing and scalability. A digital media company can leverage various components of the Hadoop ecosystem to understand viewer preferences, enhance content recommendation algorithms, and identify trending topics efficiently. Here’s how each component can play a role:
+
+**i. Hadoop Distributed File System (HDFS)**
+- Role: HDFS serves as the backbone of the Hadoop ecosystem, providing a reliable and scalable storage system for handling large datasets. It stores data across multiple machines without prior organization, making it perfect for unstructured data such as video views and comments.
+- Application: Store vast amounts of video interaction data, including views, likes, shares, and user-generated comments, distributed across different nodes to ensure high availability and fault tolerance.
+
+**ii. MapReduce**
+- Role: MapReduce is the processing engine in Hadoop. It processes large datasets in a parallel and distributed manner across the nodes in a Hadoop cluster.
+- Application: Analyze large datasets by mapping out data elements and reducing them to results, like calculating the average watch time per video, identifying the most liked or shared content, or aggregating user demographic metrics.
+
+**iii. Apache Hive**
+- Role: Hive provides a SQL-like interface to query data stored in HDFS. It is designed for data summarization, query, and analysis.
+- Application: Run queries to understand user behavior patterns, such as finding correlations between demographic factors and preferences in video content. Hive can also be used to perform complex analyses to track and predict trending topics based on viewer engagement metrics.
+
+**iv. Apache HBase**
+- Role: HBase is a NoSQL database that runs on top of HDFS. It is useful for real-time read/write access to large datasets.
+- Application: Manage real-time data interactions, especially for features that require quick updates and retrievals such as counting likes or comments in real-time, which is crucial for recommending trending content dynamically.
+
+**v. Apache Pig**
+- Role: Pig is a high-level platform for creating MapReduce programs used with Hadoop. It is designed to handle any type of data, hence very suitable for handling semi-structured or unstructured data.
+- Application: Transform and process user interaction data more easily than writing complex Java MapReduce programs. Pig allows for complex data transformations and analysis, such as extracting user engagement patterns and preparing data for machine learning models in recommendation systems.
+
+**vi. Apache Mahout**
+- Role: Mahout offers a framework for building scalable machine learning algorithms, primarily focusing on collaborative filtering, clustering, and classification.
+- Application: Utilize viewer interaction data to build and train recommendation algorithms that suggest videos based on user preferences and viewing habits.
+
+**vii. Apache Spark**
+- Role: Although not originally a part of the Hadoop ecosystem, Spark can run on HDFS and is known for its speed and ability to handle real-time streaming.
+- Application: Process live data streams of user interactions for immediate insights, which can be used to adjust content recommendations on the fly. Spark’s machine learning library (MLlib) can be employed to enhance algorithms based on new user data.
+
+**viii. Apache Oozie**
+- Role: Oozie is a workflow scheduler system to manage Hadoop jobs.
+- Application: Coordinate complex data processing jobs, such as sequencing data ingestion, processing, and analytical workflows, ensuring that all processes are completed in an orderly and timely manner.
+
+By integrating these Hadoop components, the digital media company can effectively handle the diverse data types generated by user interactions, enabling scalable processing and sophisticated analysis to drive better content recommendations, identify trends, and understand viewer preferences comprehensively.
+
+
+4.
+
+rdd = sc.textFile('/content/drive/MyDrive/Big Data/Datasets/data.txt')
+rdd
+
+words =rdd.flatMap(lambda line:line.split(" "))
+print(words.collect())
+
+words_count = words.map(lambda x:(x,1))
+print(words_count.collect())
+
+result =words_count.reduceByKey(lambda x,y:x+y)
+print(result.collect())
+
+for words,count in result.collect():
+  print("words is:",words,"count is:",count)
+
+5.
+The two major components of the Hadoop ecosystem that form its core are the Hadoop Distributed File System (HDFS) and MapReduce. Both are essential for Hadoop's ability to handle large volumes of data efficiently. Here's an illustration of how each component works:
+
+**Hadoop Distributed File System (HDFS)**
+
+HDFS is designed to store very large data sets reliably, and to stream those data sets at high bandwidth to user applications. In a typical HDFS cluster, you have two types of nodes operating in a master-slave pattern: the NameNode (master) and several DataNodes (slaves).
+
+*Working:*
+- **NameNode:** The NameNode manages the file system namespace. It maintains the file system tree and metadata for all the files and directories in the system. This metadata is stored in memory, which provides very fast access to this information. The NameNode also knows the DataNodes on which all the blocks for a given file are located, though it does not store block locations persistently as this information is reconstructed from DataNodes when the system starts.
+- **DataNodes:** These nodes manage the storage attached to the nodes that they run on. DataNodes are responsible for serving read and write requests from the file system’s clients. They also perform block creation, deletion, and replication upon instruction from the NameNode.
+- **Process:** When a client needs to add a file to HDFS, the client splits the file into one or more blocks and these are stored in a set of DataNodes. The NameNode orchestrates the block storage and the replication policy, which ensures redundancy and fault tolerance.
+
+**MapReduce**
+
+MapReduce is a programming model and processing technique that allows for massive scalability across hundreds or thousands of servers in a Hadoop cluster. It works by breaking down the application into many small fragments of work, each of which may be executed on any node in the cluster.
+
+*Working:*
+- **Job Tracker and Task Trackers:** The Job Tracker is the daemon service for submitting and tracking MapReduce jobs in Hadoop. Each slave node in the cluster has a Task Tracker daemon that communicates with the Job Tracker. The Job Tracker assigns tasks to different nodes depending on their availability, and the Task Trackers execute these tasks under its supervision.
+- **Map Phase:** This phase processes the input data, typically in key-value pairs, to produce intermediate key-value pairs. For example, if analyzing text, the Map function counts the number of occurrences of each word.
+- **Shuffle and Sort:** After the map tasks have processed the data, the results are "shuffled" (redistributed) across the reducers based on the output keys. Each reducer receives all values associated with the same key from the map outputs and sorts them to facilitate processing.
+- **Reduce Phase:** This phase processes the shuffled data to perform a summary operation and produce a smaller, combined output. For example, in the word count scenario, it might sum up all counts per word received from the shuffle phase.
+- **Output:** The output of the reduce phase is then written back to the HDFS, often as a single output file, though there can be multiple output files depending on how the MapReduce job is configured.
+
+
+6.
+
+sqlContext = SQLContext(spark)
+
+A.
+
+data= sqlContext.read.options(mode="DROPMALFORMED").json('/content/drive/MyDrive/Big Data/Datasets/iris.json')
+data.show()
+
+data.printSchema()
+
+B.
+
+data.show(10)
+
+C.
+
+df = data.select("sepalLength")
+sepalLength_rdd = df.rdd
+sepalLength_rdd.collect()
+
+D.
+
+sepalLength_rdd.getNumPartitions()
+
+sepalLength_rdd = sepalLength_rdd.repartition(5)
+sepalLength_rdd.getNumPartitions()
+
+E.
+
+sepalLength_rdd.filter(lambda x: (x.sepalLength>5.4)).collect()
+
+F.
+
+sepalLength_rdd.flatMap(lambda x: x*3).collect()
+
+G.
+
+sepalLength_rdd.distinct().collect()
+
+H.
+
+rdd1 = data.select("sepalLength","species").rdd
+rdd2 = data.select("petalLength","species").rdd
+
+rdd_join = rdd1.join(rdd2)
+rdd_join.collect()
+
+rdd_left_outer_join = rdd1.leftOuterJoin(rdd2)
+rdd_left_outer_join.collect()
+
+rdd_right_outer_join = rdd1.rightOuterJoin(rdd2)
+rdd_right_outer_join.collect()
+
+rdd_full_outer_join = rdd1.fullOuterJoin(rdd2)
+rdd_full_outer_join.collect()
+
+I.
+
+rdd_cache = sepalLength_rdd.cache()
+rdd_cache.collect()
+
+**Module 2**
+
+7.
+
+A.
+
+book_schema = StructType([StructField("Book_Id", IntegerType(), True),
+                     StructField("Book_Name", StringType(), True),
+                     StructField("Author_Name", StringType(), True),
+                     StructField("Price", DoubleType(), True)])
+
+book_data = [
+    (1, "Handmaid's Tale", "Margaret Atwood", 500.0),
+    (2, "To Sleep In A Sea Of Stars", "Christopher Paolini", 560.0),
+    (3, "Mistborn", "Brandon Sanderson", 120.0),
+    (4, "Crooked Kingdom", "Leigh Bardugo", 220.0),
+    (5, "Inheritance", "Christipher Paolini", 520.0)
+]
+
+book_details = spark.createDataFrame(book_data,book_schema)
+
+print(book_details.printSchema())
+
+bill_schema = StructType([StructField("Bill_Number",IntegerType(),True),
+                     StructField("Book_Id",IntegerType(),True),
+                     StructField("Qty",StringType(),True)])
+
+bill_data = [
+    (100,1,"2"),
+    (101,3,"4"),
+    (102,2,"1"),
+    (103,5,"6"),
+    (104,4,"2")
+]
+
+bill_details = spark.createDataFrame(bill_data,bill_schema)
+
+print(bill_details.printSchema())
+
+book_details.show()
+
+B.
+
+(book_details.filter('Price > 500.0')).show()
+
+C.
+
+(book_details.select('Book_Id')).count()
+
+D.
+
+joined_table_inner = book_details.join(bill_details,"Book_Id","inner")
+joined_table_inner.show()
+
+joined_table_left = book_details.join(bill_details,"Book_Id","left")
+joined_table_left.show()
+
+joined_table_right = book_details.join(bill_details,"Book_Id","right")
+joined_table_right.show()
+
+joined_table_full = book_details.join(bill_details,"Book_Id","full")
+joined_table_full.show()
+
+joined_table_outer = book_details.join(bill_details,"Book_Id","outer")
+joined_table_outer.show()
+
+joined_table_semi = book_details.join(bill_details,"Book_Id","semi")
+joined_table_semi.show()
+
+joined_table_semi = book_details.join(bill_details,"Book_Id","anti")
+joined_table_semi.show()
+
+E.
+
+bill_details.count()
+
+F.
+
+bill_details.select('Book_Id').distinct().count()
+
+G.
+
+bill_details_updated = joined_table_inner.withColumn("Total_cost",func.try_multiply("Price","Qty"))
+bill_details_updated.show()
+
+H.
+
+bill_details_updated.select("Price").orderBy(bill_details_updated.Price.desc()).show(5)
+
+9.
+
+A.
+
+book_details.createOrReplaceTempView("book_table")
+bill_details.createOrReplaceTempView("bill_table")
+
+all_records = spark.sql("SELECT * FROM book_table")
+all_records.show()
+
+all_records = spark.sql("SELECT * FROM bill_table")
+all_records.show()
+
+B.
+
+starts_S = spark.sql("SELECT Book_Name FROM book_table WHERE Book_Name LIKE 'S%'")
+starts_S.show()
+
+C.
+
+joined_sql = spark.sql("SELECT * FROM book_table AS b1 INNER JOIN book_table AS b2 ON b1.Book_Id <> b2.Book_Id")
+joined_sql.show()
+
+E.
+
+distinct_ids = spark.sql("SELECT distinct(Book_Id) FROM bill_table")
+distinct_ids.show()
+
+F.
+
+min_price = spark.sql("SELECT min(Price) as Min_Price FROM book_table")
+min_price.show()
+
+G.
+
+max_qty = spark.sql("SELECT max(Qty) AS Max_Qty FROM bill_table")
+max_qty.show()
+
+H.
+
+count_book_id = spark.sql("SELECT Book_Id, count(Book_Id) FROM bill_table GROUP BY Book_Id")
+count_book_id.show()
+
+9.
+
+labels = np.array([1,0,1,1,0])
+predictions = np.array([0.9,0.3,0.8,0.6,0.2])
+start = time.time()
+summation = np.sum(np.square(labels-predictions))
+n = len(labels)
+error = np.multiply(1/n,summation)
+print(f"Error value is: {error}")
+end = time.time()
+print(f"Total computation time is: {end-start}")
+
+10.
+
+numpy_matrix = np.arange(30).reshape(6,5)
+print(f"{numpy_matrix}\n")
+print(numpy_matrix * 2)
+
+11.
+
+sc = SparkContext.getOrCreate()
+x = np.arange(25).reshape(5,5)
+print(x)
+mat_rdd = sc.parallelize(x)
+beta = np.array([4,5,3,2,6])
+result = mat_rdd.map(lambda x : x*beta).reduce(lambda x,y: x+y)
+print(f"Theta value is: {result}")
+
+12.
+
+data_mat = np.array([[1,2], [3,4]])
+inv_data_mat = linalg.inv(data_mat)
+print(f"{inv_data_mat}\n")
+print(data_mat)
+
+a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+b = np.array([[1], [2], [3]])
+a[2] = a[0] + a[1]
+x = linalg.solve(a, b)
+print(x)
+
+13.
+
+- **Sparse Matrix:** A sparse matrix is one in which most of the elements are zero. Storing only the non-zero elements saves significant amounts of memory and computational resources, especially useful in large matrices. This is typically achieved using formats like Compressed Sparse Row (CSR) or Compressed Sparse Column (CSC).
+- **Dense Matrix:** A dense matrix is one where most of the elements are non-zero. These matrices require storage for every element in the matrix, regardless of the element's value, typically leading to higher memory usage compared to sparse matrices. Dense matrices are usually stored in traditional 2D arrays.
+
+
+row = np.array([0,1,2])
+col = np.array([0,1,2])
+
+data = np.array([1,1,1])
+
+sparseMatrix = csr_matrix((data,(row,col)),shape=(3,3))
+
+print(sparseMatrix)
+
+14.
+
+**Code optimization** is the process of modifying a software system to make some aspect of it work more efficiently or use fewer resources. The goal is to improve the performance of the code, which can include faster execution times, reduced memory usage, or other performance metrics. Optimization can occur at different stages of the software development process, such as during coding (by writing more efficient algorithms), at compile time (through compiler optimizations), or during runtime (via just-in-time compilation).
+
+size = 4
+data = [(0,Vectors.dense(np.random.rand(size)),),(1,Vectors.dense(np.random.rand(size)),),(1,Vectors.dense(np.random.rand(size)),)]
+data_spark = spark.createDataFrame(data,["label","features"])
+data_spark.show()
+
+15.
+
+**Cluster configuration** refers to the setup and management of a cluster of computers that work together to perform computing tasks. This can involve both hardware (setting up the physical machines and their connections) and software (configuring the network settings, operating systems, and applications that allow the machines to communicate and distribute tasks among them). Cluster configuration is crucial for achieving high availability, scalability, and efficient processing of large volumes of data or high-performance computing tasks. It determines how resources are allocated, managed, and maintained across the cluster.
+
+spark_config = SparkSession.builder.appName('Cluster Configuration').master("spark://master-url:7077").config("spark.executor.memory","2g").config("spark.executor.cores",2).config("spark.shuffle.service.enabled",True).config("spark.dynamicAllocation.enabled",True).config("spark.dynamicAllocation.minExecutors",1).config("spark.dynamicAllocation.maxExecutors",10).getOrCreate()
+spark_config.stop()
+
+**Module 3**
+
+1.
+Data Modeling is the process of creating a visual representation (a model) of a system or process in a database to support business processes, enable data-driven decisions, and guide the development and design of database systems. It involves defining, structuring, and documenting the data resources and relationships between them.
+
+**Types of Data Modeling:**
+
+- **Conceptual Data Model:** Provides a high-level view of the system, focusing on the major entities and the relationships between them without going into details.
+- **Logical Data Model:** More detailed than the conceptual model, it includes all entities, relationships, key attributes, and shows how data elements interconnect.
+- **Physical Data Model:** Specifies the complete details of how data is stored in a database including tables, columns, indexes, primary and foreign keys, and the physical storage structure.
+
+Four Steps to be Followed by a Data Analyst:
+1.	Requirement Gathering: Understand business requirements through interviews, questionnaires, or sessions with stakeholders.
+2.	Data Collection and Preparation: Gather the required data and clean it to ensure quality and relevance.
+3.	Model Construction: Build the model using appropriate modeling techniques based on the collected data and prepared schema.
+4.	Iteration and Validation: Continuously refine the model based on feedback and new data, and validate the model to ensure it meets business needs.
+
+
+2.
+**Monte Carlo Markov Chain (MCMC)** is a class of algorithms used to sample from probability distributions based on constructing a Markov chain that has the desired distribution as its equilibrium distribution. The MCMC method is particularly useful for calculating numerical approximations in complex probabilistic models where direct sampling is difficult.
+
+**Types of MCMC:**
+
+-	**Metropolis-Hastings Algorithm:** Generates a sequence of sample values in such a way that, as more sample values are produced, the distribution of values more closely approximates the desired distribution. Adjustments are made at each step based on a proposal distribution and acceptance probability.
+-	**Gibbs Sampling:** A special case of the Metropolis-Hastings algorithm that is used when the joint distribution is known but the conditional distributions are easier to sample from. It involves sequentially sampling from conditional distributions of each variable while holding all others fixed.
+-	**Hamiltonian Monte Carlo (HMC):** A variant that uses concepts from classical mechanics to inform the proposal distribution—specifically, it uses ideas about potential and kinetic energy to create efficient proposals that are likely to be accepted.
+
+
+3.
+Optimization is the process of making a system or design as effective or functional as possible. Various types of optimization techniques are used in different fields, primarily categorized based on the nature of the functions involved and the methods used:
+
+-	**Linear Optimization:** Deals with problems in which the objective function and the constraints are linear. A common method used here is linear programming.
+-	**Nonlinear Optimization:** Involves objective functions or constraints that are nonlinear. It is typically more complex and uses methods like gradient descent or quadratic programming.
+-	**Convex Optimization:** A subset of optimization where the objective function is convex (the line segment between any two points on the graph of the function does not lie below the graph at any point). Solutions to convex optimization problems are global optima.
+-	**Discrete Optimization:** Involves optimization problems with discrete variables (e.g., integer values). Techniques used include integer programming and dynamic programming.
+
+
+A.
+
+data = [(1.0,2.0),(2.0,4.0),(3.0,6.0),(4.0,8.0)]
+df = spark.createDataFrame(data,['x','y'])
+df.show()
+
+def compute_gradient(df,w,b):
+  N = df.count()
+  dw = 1/N*df.rdd.map(lambda row:row.x*(row.y-(w*row.x+b))).sum()
+  db = 1/N*df.rdd.map(lambda row:row.y-(w*row.x+b)).sum()
+  return dw,db
+
+def mse(df,w,b):
+  N = df.count()
+  mse_err = 1/(2*N)*df.rdd.map(lambda row:(row.y-(w*row.x+b))**2).sum()
+  return mse_err
+
+w = 0.5
+b = 0
+iter = 100
+learning_rate = 0.01
+for i in range(iter):
+  dw,db = compute_gradient(df,w,b)
+  w = w - learning_rate * dw
+  b = b - learning_rate * db
+  mse_err = mse(df,w,b)
+  print(f"Iteration is {i+1}: w = {w} and b = {b} and mse = {mse_err}")
+
+4.
+
+data = spark.read.options(header=True,inferSchema=True).csv('/content/drive/MyDrive/Big Data/Datasets/advertising (2).csv')
+
+data.printSchema()
+
+data.show()
+
+data = data.select('Radio').rdd.flatMap(lambda x: x).collect()
+
+sc = SparkContext.getOrCreate()
+
+data = sc.parallelize(data)
+
+pdf_data = data.map(lambda x:norm.pdf(x))
+print(pdf_data.collect())
+
+ppf_data = data.map(lambda x:norm.ppf(x))
+print(ppf_data.collect())
+
+5.
+Newton's method, also known as the Newton-Raphson method, is a powerful technique used in optimization to find the stationary points of a function (where the gradient is zero) by solving the equation of the derivatives equal to zero. It is particularly effective for finding local maxima or minima of real-valued functions.
+
+The fundamental idea behind Newton's method is to use an iterative approach to find successively better approximations to the roots (or zeroes) of a real-valued function. The method uses the first and second derivatives of the function to understand its curvature and to predict where the function's gradient will be zero.
+
+Newton's method is widely used in numerical optimization, especially in scenarios where high precision is required and derivatives can be conveniently calculated. Its effectiveness and efficiency make it a staple method in fields such as economics, engineering, and machine learning model optimization.
+
+ Variations and Extensions:
+- Modified Newton's Method: This variation involves modifications to handle cases where the Hessian is zero or nearly zero, such as by adding a small number to the denominator.
+- Quasi-Newton Methods: These are popular alternatives that approximate the Hessian matrix instead of calculating it directly, significantly reducing computational overhead. Examples include the BFGS and L-BFGS algorithms.
+
+
+**Module 4**
+
+1.
+
+data = spark.read.options(header='true',inferSchema='true').csv('/content/drive/MyDrive/Big Data/Datasets/Salary_Data (1).csv')
+
+data.printSchema()
+
+data.show()
+
+data.describe().show()
+
+assembler = VectorAssembler(inputCols=['YearsExperience'],outputCol='Independent Feature')
+data_final = assembler.transform(data)
+
+scaler = StandardScaler(inputCol='Independent Feature',outputCol='Scaled Feature')
+data_scaled = scaler.fit(data_final).transform(data_final)
+
+train_data,test_data = data_scaled.randomSplit([0.70,0.30],seed=44)
+
+lr_model = LinearRegression(featuresCol='Scaled Feature',labelCol='Salary',regParam=0.0,elasticNetParam=0.0,maxIter=100,solver='l-bfgs')
+para_grid = ParamGridBuilder().addGrid(lr_model.regParam,[0.1,0.01,1.0]).build()
+
+eval = RegressionEvaluator(labelCol='Salary',predictionCol='prediction',metricName='r2')
+cross_eval = CrossValidator(estimator=lr_model,estimatorParamMaps=para_grid,evaluator=eval,numFolds=5,seed=44)
+
+cv_model = cross_eval.fit(train_data)
+
+best_model = cv_model.bestModel
+predictions = best_model.transform(test_data)
+predictions.show()
+
+r2 = eval.evaluate(predictions)
+print(f"MSE value : {r2}")
+
+2.
+
+data = spark.read.options(header='true',inferSchema='true').csv('/content/drive/MyDrive/Big Data/Datasets/heart (1).csv')
+
+data.printSchema()
+
+data.describe().show()
+
+assembler = VectorAssembler(inputCols=['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'],outputCol='Independent Feature')
+scaler = StandardScaler(inputCol='Independent Feature',outputCol='Scaled Feature')
+svm_model = LinearSVC()
+one_model = OneVsRest(featuresCol='Scaled Feature',labelCol='target',classifier=svm_model)
+lr_model = LogisticRegression(featuresCol='Scaled Feature',labelCol='target')
+pipeline_lr = Pipeline(stages=[assembler,scaler,lr_model])
+pipeline_svm = Pipeline(stages=[assembler,scaler,one_model])
+
+train_data,test_data = data.randomSplit([0.7,0.3],seed=45)
+
+lr_model = pipeline_lr.fit(train_data)
+svm_model = pipeline_svm.fit(train_data)
+
+prediction = lr_model.transform(test_data)
+prediction.show()
+
+eval = BinaryClassificationEvaluator(labelCol='target')
+a_ROC = eval.evaluate(prediction)
+print(f'area under ROC is {a_ROC}')
+
+pred = svm_model.transform(test_data)
+pred.show()
+
+a_ROC = eval.evaluate(pred)
+print(f'area under ROC is {a_ROC}')
+
+data = spark.read.options(header='true',inferSchema='true').csv('/content/drive/MyDrive/Big Data/Datasets/heart_disease_health_indicators_BRFSS2015.csv')
+
+data.printSchema()
+
+data.describe().show()
+
+data.show()
+
+assembler = VectorAssembler(inputCols=['HighBP','HighChol','CholCheck','BMI','Smoker','Stroke','Diabetes','PhysActivity','Fruits','Veggies','HvyAlcoholConsump','AnyHealthcare','NoDocbcCost','GenHlth','MentHlth','PhysHlth','DiffWalk','Sex','Age','Education','Income'],outputCol='Independent Feature')
+data_final = assembler.transform(data)
+
+scaler = StandardScaler(inputCol='Independent Feature',outputCol='Scaled Feature')
+data_scaled = scaler.fit(data_final).transform(data_final)
+
+train_data,test_data = data_scaled.randomSplit([0.70,0.30],seed=44)
+
+glm = GeneralizedLinearRegression(labelCol='HeartDiseaseorAttack',featuresCol='Scaled Feature',maxIter=100,family='gaussian')
+
+model = glm.fit(train_data)
+model.summary
+
+predictions = model.transform(test_data)
+predictions.show()
+
+evaluator = RegressionEvaluator(labelCol='HeartDiseaseorAttack',predictionCol='prediction',metricName='rmse')
+rmse = evaluator.evaluate(predictions)
+print(f"RMSE Value: {rmse}")
+
+evaluator = RegressionEvaluator(labelCol='HeartDiseaseorAttack',predictionCol='prediction',metricName='mse')
+mse = evaluator.evaluate(predictions)
+print(f"MSE Value: {mse}")
+
+evaluator = RegressionEvaluator(labelCol='HeartDiseaseorAttack',predictionCol='prediction',metricName='mae')
+mae = evaluator.evaluate(predictions)
+print(f"MAE Value: {mae}")
+
+evaluator = RegressionEvaluator(labelCol='HeartDiseaseorAttack',predictionCol='prediction',metricName='r2')
+r2 = evaluator.evaluate(predictions)
+print(f"R2 Value: {r2}")
+
+3.
+
+data = spark.read.options(header='true',inferSchema='true').csv('/content/drive/MyDrive/Big Data/Datasets/heart (1).csv')
+data.printSchema()
+
+def detect_continuous_variables(df,threshold):
+  continuous_columns = []
+  for column in df.columns:
+    dtype = df.schema[column].dataType
+    if isinstance(dtype,(IntegerType,NumericType)):
+      distinct_count = df.select(approxCountDistinct(column)).collect()[0][0]
+      if distinct_count > threshold:
+        continuous_columns.append(column)
+  return continuous_columns
+
+continous_variables = detect_continuous_variables(data,10)
+continous_variables
+
+def iqr_treat_outlier(df,columns,factor=1.5):
+  for column in columns:
+    quantile = df.approxQuantile(column,[0.25,0.75],0.01)
+    q1,q3 = quantile[0],quantile[1]
+    iqr = q3-q1
+    lower_bound = q1-factor*iqr
+    upper_bound = q3+factor*iqr
+    df = df.filter((col(column)>=lower_bound)&(col(column)<=upper_bound))
+  return df
+
+df_outlier_treated = iqr_treat_outlier(data,continous_variables,1.5)
+df_oulier_pandas = df_outlier_treated.toPandas()
+df_oulier_pandas.head()
+
+def z_score_outlier(df,columns,threshold=3.0):
+  for column in columns:
+    stats = df.select(mean(col(column)).alias('mean'),stddev(col(column)).alias('stddev')).collect()[0]
+    df = df.withColumn(f'{column}_z_score',(col(column)-stats['mean'])/stats['stddev']).filter(f'abs({column}_z_score)<={threshold}').drop(f'{column}_z_score')
+  return df
+
+df_z_score_output = z_score_outlier(data,continous_variables,3.0)
+df_z_score_output.count()
+df_z_score_pandas = df_z_score_output.toPandas()
+df_z_score_pandas.head()
+
+**Module 5**
+
+1.
+
+data = spark.read.options(header='true',inferSchema='true').csv('/content/drive/MyDrive/Big Data/Datasets/Mall_Customers (2).csv')
+data.printSchema()
+
+data.summary().show()
+
+indexer = StringIndexer(inputCol="Genre",outputCol="Gender_num")
+data = indexer.fit(data).transform(data)
+data.show()
+
+assembler = VectorAssembler(inputCols=['Age','Gender_num','Annual Income (k$)','Spending Score (1-100)'],outputCol="Independent Feature")
+data = assembler.transform(data)
+
+sc = StandardScaler(inputCol="Independent Feature",outputCol="Scaled Feature")
+data = sc.fit(data).transform(data)
+
+k_range = range(2,5)
+ssd = []
+sil_score = []
+for k in k_range:
+  km = KMeans(featuresCol='Scaled Feature',k=k)
+  model = km.fit(data)
+  eval = ClusteringEvaluator(featuresCol='Scaled Feature')
+  prediction = model.transform(data)
+  s_score = eval.evaluate(prediction)
+  sil_score.append(s_score)
+  sum_squ = model.summary.trainingCost
+  ssd.append(sum_squ)
+
+plt.figure(figsize=(10,8))
+plt.plot(k_range,ssd,marker='o')
+plt.xlabel('No of clusters')
+plt.ylabel('Sum of Square Distance')
+plt.title('Elbow Method')
+plt.show()
+
+sil_score
+
+kmm = KMeans(k=4,featuresCol='Scaled Feature',maxIter=50,seed=44)
+model = kmm.fit(data)
+predict = model.transform(data)
+predict.show()
+
+i = 0
+for center in model.clusterCenters():
+  print(f'Cluster Center for cluster {i} is :{center}')
+  i = i+1
+
+prediction_data = predict.toPandas()
+
+plt.figure(figsize=(10,8))
+plt.scatter(prediction_data['Annual Income (k$)'],prediction_data['Spending Score (1-100)'],c=prediction_data['prediction'],cmap='viridis')
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.title('Mall Customers using KMeans')
+plt.show()
+
+k_range = range(2,5)
+log_likelihood = []
+for k in k_range:
+  gm = GaussianMixture(featuresCol='Scaled Feature',k=k)
+  model = gm.fit(data)
+  log_val = model.summary.logLikelihood
+  log_likelihood.append(log_val)
+
+plt.figure(figsize=(10,8))
+plt.plot(k_range,log_likelihood,marker='o')
+plt.xlabel('No of Clusters')
+plt.ylabel('Log Likelihood')
+plt.title('Log Likelihood')
+plt.show()
+
+gm = GaussianMixture(k=4,featuresCol='Scaled Feature',seed=44)
+model = gm.fit(data)
+pred = model.transform(data)
+pred.show()
+
+i = 0
+for center in model.gaussiansDF.collect()[0]:
+  print(f'Cluster Center for cluster {i} is :{center}')
+  i = i+1
+
+eval = ClusteringEvaluator(featuresCol='Scaled Feature')
+score = eval.evaluate(pred)
+print(score)
+
+cluster_data = pred.groupBy('prediction').count().orderBy('prediction')
+cluster_data.show()
+
+pred_data = pred.toPandas()
+
+plt.figure(figsize=(10,8))
+plt.scatter(pred_data['Annual Income (k$)'],pred_data['Spending Score (1-100)'],c=pred_data['prediction'],cmap='viridis')
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.title('Mall Customers using KMeans')
+plt.show()
+
+2.
+
+data = spark.read.options(header="true",inferSchema="true").csv("/content/drive/MyDrive/Big Data/Datasets/ANSUR_II_FEMALE_Public.csv")
+
+data.printSchema()
+
+continuous_features = detect_continuous_variables(data,10)
+continuous_features
+
+indexer = StringIndexer(inputCol="WritingPreference",outputCol="WritingPreference_num")
+data = indexer.fit(data).transform(data)
+data.show()
+
+assembler = VectorAssembler(inputCols=continuous_features,outputCol="Independent Feature")
+data = assembler.transform(data)
+data.show()
+
+sc = StandardScaler(inputCol="Independent Feature",outputCol="Scaled Feature")
+data = sc.fit(data).transform(data)
+
+len(continuous_features)
+
+pca_model = PCA(k=24,inputCol="Scaled Feature",outputCol="PCA Feature")
+model = pca_model.fit(data)
+variance_explained = model.explainedVariance.cumsum()
+
+k_comp = len([var for var in variance_explained if var<=0.95])+1
+
+plt.figure(figsize=(10,8))
+plt.plot(range(1,len(variance_explained)+1),variance_explained,marker='o',linestyle='-')
+plt.xlabel("No of Components")
+plt.ylabel("Explained Variance")
+plt.title("Scree Plot")
+plt.show()
+
+pca_model = PCA(k=5,inputCol='Scaled Feature',outputCol='PCA Feature')
+model = pca_model.fit(data)
+final_data = model.transform(data)
+final_data.show()
+
+lr =  LogisticRegression(featuresCol="PCA Feature",labelCol="WritingPreference_num")
+train_data,test_data = final_data.randomSplit([0.70,0.30],seed=44)
+lr_model = lr.fit(final_data)
+pred = lr_model.transform(final_data)
+pred.show()
+
+eval = MulticlassClassificationEvaluator(labelCol="WritingPreference_num",predictionCol="prediction",metricName="accuracy")
+accuracy = eval.evaluate(pred)
+print(accuracy)
+
+svm_model = LinearSVC()
+one = OneVsRest(featuresCol='PCA Feature',labelCol='WritingPreference_num',classifier=svm_model)
+train_data,test_data = final_data.randomSplit([0.70,0.30],seed=44)
+one_model = one.fit(final_data)
+prediction = one_model.transform(final_data)
+prediction.show()
+
+eval = MulticlassClassificationEvaluator(labelCol="WritingPreference_num",predictionCol="prediction",metricName="accuracy")
+accuracy = eval.evaluate(prediction)
+print(accuracy)
+
+**Module 6**
+
+document = pd.read_csv('/content/drive/MyDrive/Big Data/Datasets/npr.csv')
+document
+
+document_list = document['Article']
+
+tokenizer = RegexpTokenizer(r'\w+')
+tfidf = TfidfVectorizer(lowercase=True,stop_words='english',ngram_range=(1,1),max_features=1000,tokenizer=tokenizer.tokenize,max_df=0.5,smooth_idf=True)
+train_data = tfidf.fit_transform(document_list)
+
+n_components = 10
+svd = TruncatedSVD(n_components=n_components,n_iter=100,random_state=42)
+svd.fit_transform(train_data)
+
+sigma = svd.singular_values_
+V_transpose = svd.components_.T
+terms = tfidf.get_feature_names_out()
+
+for index,components in enumerate(svd.components_):
+  zipped = zip(terms,components)
+  top_terms_keys = sorted(zipped,key=lambda t:t[1],reverse=True)[:10]
+  top_terms_list = list(dict(top_terms_keys).keys())
+  print('Topic '+str(index)+":",top_terms_list)
+
+data = spark.read.options(inferSchema='true',mode='DROPMALFORMED',header='true').csv("/content/drive/MyDrive/Big Data/Datasets/npr.csv")
+data.show()
+
+tokenizer = Tokenizer(inputCol='Article',outputCol='Words')
+word_data = tokenizer.transform(data)
+word_data.show()
+
+remover = StopWordsRemover(inputCol='Words',outputCol='Filtered')
+filter_data = remover.transform(word_data)
+filter_data.show()
+
+cv = CountVectorizer(inputCol='Filtered',outputCol='features')
+cv_model = cv.fit(filter_data)
+vector_data = cv_model.transform(filter_data)
+vector_data.show()
+
+vocab = cv_model.vocabulary
+vocab
+
+num_topics = 10
+lda = LDA(k=num_topics,maxIter=10)
+ldaModel = lda.fit(vector_data)
+topics = ldaModel.describeTopics(maxTermsPerTopic=5)
+topics.show(truncate=False)
+
+def topic_render(topic):
+  terms = topic['termIndices']
+  return [vocab[idx] for idx in terms]
+
+topic_words = topics.rdd.map(lambda topic:(topic['topic'],topic_render(topic)))
+for topic,words in topic_words.collect():
+  print(f"Topics is:{topic} with words {words}")
+
+**Topic modeling** is a type of statistical modeling for discovering the abstract "topics" that occur in a collection of documents. It is a frequently used text-mining tool to extract hidden semantic structures in text bodies. This technique is primarily used for categorizing text in a document to a particular set of topics and for discovering patterns in large text data. Topic models are built around the idea that the semantics of our document are actually being governed by hidden, or "latent", topics.
+
+**Popular Techniques:**
+The most popular techniques for topic modeling include Latent Dirichlet Allocation (LDA) and Non-negative Matrix Factorization (NMF). These models are based on the assumption that documents are produced from a mixture of topics, where each topic is a collection of terms with certain probability scores.
+
+**Steps Involved in Topic Modeling**
+
+1. **Document Collection:** Gather a set of texts you're interested in analyzing. This set should be substantial enough to allow for the analysis of common themes.
+
+2. **Text Preprocessing:** Prepare your text data. This involves cleaning the data by removing punctuation, stop words, and possibly standardizing text cases. It also includes tokenization (breaking text into words or phrases), and often, reducing words to their root forms (stemming or lemmatization).
+
+3. **Feature Extraction:** Convert text documents to a numeric form that can be processed by algorithms. This is usually done by vectorizing the text through techniques like TF-IDF (Term Frequency-Inverse Document Frequency) or Count Vectorizer, which transform the text into a sparse matrix of term/token counts.
+
+4. **Model Selection and Training:**
+  - Choose a topic model algorithm (e.g., LDA, NMF).
+  - Determine the number of topics. This usually requires some trial and error and might depend on specific domain knowledge or the resolution of topics desired.
+  - Train the model on your dataset. During this training process, the model learns to associate words with specific topics.
+
+5. **Topic Identification:**
+  - Once the model is trained, each topic will be represented as a combination of keywords, each reflecting a certain weight indicating how much the word contributes to the topic.
+  - Interpret the topics, which can be challenging and might require domain expertise. Each topic is a mixture of terms, and you'll need to review the terms to understand the essence of each topic.
+
+6. **Assessment:** Evaluate the model using metrics such as perplexity and coherence score, or simply assessing how meaningful the topics are qualitatively. Adjustments to the number of topics, alterations to text preprocessing, or even changes to the model might be necessary based on this evaluation.
+
+7. **Application:**
+  - Use the topics to summarize large collections of text or to organize them thematically.
+  - Enhance search engines by indexing based on discovered topics.
+  - Improve recommendations for users by understanding the topics of interest.
+
+**Application and Impact**
+
+Topic modeling can be incredibly useful in a variety of applications including content recommendation in streaming services, enhancing search algorithms, market research, and customer feedback analysis. By understanding underlying themes and topics, businesses and researchers can derive meaningful insights from large volumes of text data, making informed decisions based on the content's hidden structure.
+
+
+#**ALL THE BEST FOR FINAL EXAM!!!**
+
